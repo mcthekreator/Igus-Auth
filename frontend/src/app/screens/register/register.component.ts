@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../shared/service/AuthService/auth.service';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../shared/services/AuthService/auth.service';
 import { SubscriptionManager } from '../../core/subscriptionManager/subscriptionManager';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AuthInterface } from '../../shared/models/auth-interface';
@@ -19,22 +19,17 @@ export class RegisterComponent {
   public hidePasswordIcon: string = '../../../assets/hide-password.svg';
 
   private subscriptionManager = new SubscriptionManager();
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {
 
-  }
-
-  public loginForm = this.fb.group({
+  public registerForm = this.fb.group({
     name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(2)]],
   });
-  
+
 
   public hideShowPassword() {
     this.isText = !this.isText;
@@ -46,16 +41,15 @@ export class RegisterComponent {
   }
 
   public onRegister() {
-    if (this.loginForm.valid) {
-      this.authService.register(this.loginForm.value as AuthInterface).subscribe({
+    if (this.registerForm.valid) {
+      this.subscriptionManager.add = this.authService.register(this.registerForm.value as AuthInterface).subscribe({
         next: (response) => {
           console.log(response);
-          localStorage.setItem('token',response.token)
-            this.router.navigate(['/admin-page/dashboard']);
-    
+          localStorage.setItem('token', response.token)
+          this.router.navigate(['/admin-page/dashboard']);
         },
         error: (error) => {
-          console.error('Login failed:', error); // Log error for debugging
+          console.error('Login failed:', error);
           alert('Login failed. Please check your credentials and try again.');
         },
         complete: () => {
@@ -67,10 +61,4 @@ export class RegisterComponent {
   }
 
 
-  public getUsers(){
-  this.authService.getUsers().subscribe((users) => {
-    console.log(users);
-    
-  })
-  }
 }

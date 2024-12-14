@@ -6,6 +6,7 @@ import {
 import { SubscriptionManager } from '../../core/subscriptionManager/subscriptionManager';
 import { AuthService } from '../../shared/services/AuthService/auth.service';
 import { AuthInterface } from '../../shared/models/auth-interface';
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -24,7 +25,7 @@ export class LoginComponent {
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private router = inject(Router);
+  private toastr = inject(ToastrService);
 
   public loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -47,18 +48,19 @@ export class LoginComponent {
         next: (response) => {
           console.log(response);
           localStorage.setItem('token', response.token)
-          this.router.navigate(['/admin-page/dashboard']);
 
+          setTimeout(() => {
+            this.toastr.success('Account created succesfully', 'Success', { closeButton: true })
+          }, 2000)
         },
         error: (error) => {
-          console.error('Login failed:', error);
-          alert('Login failed. Please check your credentials and try again.');
+          this.toastr.error(error, 'Error', { closeButton: true })
         },
         complete: () => {
         },
       });
     } else {
-      alert('Please fill in all required fields correctly.');
+      this.toastr.error('Please fill in all required fields correctly.', 'Error', { closeButton: true })
     }
   }
 }

@@ -12,9 +12,13 @@ import {
   withFetch,
 } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideToastr } from 'ngx-toastr';
+import { AuthBtnComponent } from './components/Auth-Components/auth-btn/auth-btn.component';
+import { AuthInputComponent } from './components/Auth-Components/auth-input/auth-input.component';
 
 @NgModule({
-  declarations: [AppComponent, LoginComponent, RegisterComponent],
+  declarations: [AppComponent, LoginComponent, RegisterComponent, AuthBtnComponent, AuthInputComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -27,7 +31,8 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
       withFetch(),
       withInterceptors([authInterceptor])
     ),
+    provideAnimations(), provideToastr()
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }

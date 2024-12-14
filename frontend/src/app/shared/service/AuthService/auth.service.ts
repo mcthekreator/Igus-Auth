@@ -21,11 +21,15 @@ export class AuthService {
 			loginData,
 		);
 	}
+  // Method to log in a user
+	public register(loginData: AuthInterface) {
 
-  // Method to register a new user
-  public register(user: { email: string; password: string; name: string }): Observable<any> {
-    return this.http.post(`${this.baseUrl}/register`, user);
-  }
+		return this.http.post<AuthInterface>(
+			`${this.baseUrl}/register`,
+			loginData,
+		);
+	}
+
   public getUsers(){
     return this.http.get(`${this.baseUrl}/getUsers`,);
   }

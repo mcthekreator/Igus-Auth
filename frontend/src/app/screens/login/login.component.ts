@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import {
@@ -13,13 +13,7 @@ import { AuthInterface } from '../../shared/models/auth-interface';
 
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterLink,
-  ],
+
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -28,7 +22,6 @@ export class LoginComponent {
   public isText: boolean = false;
   public isLoading: boolean = false;
   public submitted: boolean = false;
-  private verified: string = 'true';
   public showPasswordIcon: string = '../../../assets/showPassword.svg';
   public hidePasswordIcon: string = '../../../assets/hide-password.svg';
 
@@ -48,10 +41,10 @@ export class LoginComponent {
   }
 
   public loginForm = this.fb.group({
-    email: ['', [Validators.required]],
-    password: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(2)]],
   });
-
+  
 
   public hideShowPassword() {
     this.isText = !this.isText;
@@ -64,28 +57,31 @@ export class LoginComponent {
 
   public onLogin() {
     if (this.loginForm.valid) {
-      this.isLoading = true;
       this.authService.login(this.loginForm.value as AuthInterface).subscribe({
         next: (response) => {
-          if (response.status === 'success') {
-            {
-              setTimeout(() => {
-                this.router.navigate(['/admin-page/dashboard']).then(() => {
-
-                });
-              }, 2000);
-
-            }
-          }
+          console.log(response);
+          localStorage.setItem('token',response.token)
+            this.router.navigate(['/admin-page/dashboard']);
+    
         },
         error: (error) => {
-          setTimeout(() => {
-
-
-          });
-        }
-
-      })
+          console.error('Login failed:', error); // Log error for debugging
+          alert('Login failed. Please check your credentials and try again.');
+        },
+        complete: () => {
+        },
+      });
+    } else {
+      alert('Please fill in all required fields correctly.');
     }
   }
+
+
+  public getUsers(){
+  this.authService.getUsers().subscribe((users) => {
+    console.log(users);
+    
+  })
+  }
+  
 }

@@ -5,7 +5,7 @@ import {
 } from '@angular/router';
 import { SubscriptionManager } from '../../core/subscriptionManager/subscriptionManager';
 import { AuthService } from '../../shared/services/AuthService/auth.service';
-import { AuthInterface } from '../../shared/models/auth-interface';
+import { AuthInterface, responseInterface } from '../../shared/models/auth-interface';
 import { ToastrService } from 'ngx-toastr';
 
 
@@ -32,35 +32,30 @@ export class LoginComponent {
     password: ['', [Validators.required, Validators.minLength(2)]],
   });
 
-
-  public hideShowPassword() {
-    this.isText = !this.isText;
-    if (this.isText) {
-      this.type = 'text';
-    } else {
-      this.type = 'password';
-    }
-  }
-
   public onLogin() {
+    this.isLoading = true
+    this.loginForm.disable
     if (this.loginForm.valid) {
       this.subscriptionManager.add = this.authService.login(this.loginForm.value as AuthInterface).subscribe({
         next: (response) => {
-          console.log(response);
           localStorage.setItem('token', response.token)
 
           setTimeout(() => {
-            this.toastr.success('Account created succesfully', 'Success', { closeButton: true })
+            this.isLoading = false
+            this.toastr.success(response.message, 'Success', { closeButton: true })
           }, 2000)
+         
         },
-        error: (error) => {
-          this.toastr.error(error, 'Error', { closeButton: true })
-        },
-        complete: () => {
+        error: (error: responseInterface) => {
+          setTimeout(() => {
+            this.isLoading = false
+            this.toastr.error(error.error.message, 'Error', { closeButton: true })
+          }, 2000)
+         
         },
       });
     } else {
-      this.toastr.error('Please fill in all required fields correctly.', 'Error', { closeButton: true })
+      this.toastr.error('Please all fields are required  .', 'Error', { closeButton: true })
     }
   }
 }

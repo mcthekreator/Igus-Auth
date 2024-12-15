@@ -4,6 +4,7 @@ import { AuthService } from '../../shared/services/AuthService/auth.service';
 import { SubscriptionManager } from '../../core/subscriptionManager/subscriptionManager';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AuthInterface } from '../../shared/models/auth-interface';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-register',
@@ -22,7 +23,7 @@ export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
-
+  private toastr = inject(ToastrService);
 
   public registerForm = this.fb.group({
     name: ['', [Validators.required]],
@@ -31,32 +32,30 @@ export class RegisterComponent {
   });
 
 
-  public hideShowPassword() {
-    this.isText = !this.isText;
-    if (this.isText) {
-      this.type = 'text';
-    } else {
-      this.type = 'password';
-    }
-  }
 
   public onRegister() {
+    this.isLoading = true
     if (this.registerForm.valid) {
       this.subscriptionManager.add = this.authService.register(this.registerForm.value as AuthInterface).subscribe({
         next: (response) => {
-          console.log(response);
           localStorage.setItem('token', response.token)
-          this.router.navigate(['/admin-page/dashboard']);
+          setTimeout(() => {
+            this.isLoading = false
+            this.toastr.success(response.message, 'Success', { closeButton: true })
+            this.router.navigate(['/login']);
+          }, 2000)
+
+
         },
         error: (error) => {
-          console.error('Login failed:', error);
-          alert('Login failed. Please check your credentials and try again.');
-        },
-        complete: () => {
+          setTimeout(() => {
+            this.isLoading = false
+            this.toastr.error(error.error.message, 'Error', { closeButton: true })
+          }, 2000)
         },
       });
     } else {
-      alert('Please fill in all required fields correctly.');
+      alert('Please all fields are required.');
     }
   }
 

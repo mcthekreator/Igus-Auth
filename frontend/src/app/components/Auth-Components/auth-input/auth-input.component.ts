@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-auth-input',
@@ -6,5 +6,9 @@ import { Component } from '@angular/core';
   styleUrl: './auth-input.component.scss'
 })
 export class AuthInputComponent {
+  @ Input() inputType!: string;
+  @ Input() FormControlName!: string;
+  @ Input() placeholderText!: string;
+  
 
 }

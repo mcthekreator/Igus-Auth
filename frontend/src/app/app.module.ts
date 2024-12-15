@@ -16,9 +16,10 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
 import { AuthBtnComponent } from './components/Auth-Components/auth-btn/auth-btn.component';
 import { AuthInputComponent } from './components/Auth-Components/auth-input/auth-input.component';
+import { AuthSideImageComponent } from './components/Auth-Components/auth-side-image/auth-side-image.component';
 
 @NgModule({
-  declarations: [AppComponent, LoginComponent, RegisterComponent, AuthBtnComponent, AuthInputComponent],
+  declarations: [AppComponent, LoginComponent, RegisterComponent, AuthBtnComponent, AuthInputComponent, AuthSideImageComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

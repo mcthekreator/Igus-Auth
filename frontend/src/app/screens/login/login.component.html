@@ -1,17 +1,23 @@
-<form [formGroup]="loginForm" (ngSubmit)="onLogin()">
-	<input
-	  type="email"
-	  formControlName="email"
-	  placeholder="Enter your email"
-	/>
-	<input
-	  [type]="type"
-	  formControlName="password"
-	  placeholder="Enter your password"
-	/>
-	<app-auth-btn title="login"></app-auth-btn>
-  </form>
-  
-
-
-<h4>dont have an account <p [routerLink]="['/register']">register</p> </h4>
+<section class="flex gap-5 w-full border border-1 border-red bg-PrimaryColor p-5 h-screen">
+	<div class="w-1/2">
+		<app-auth-side-image></app-auth-side-image>
+	</div>
+	<div class="w-1/2 text-White p-36">
+		<header class="mb-20">
+			<h1 class="text-[32px] font-semibold">Login</h1>
+			<p class="text-grey">You can login with your registered account or quick login with your Google account.</p>
+		</header>
+		<form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+			<label for="">Email</label>
+			<app-auth-input placeholderText="Enter email" inputType="email" formControlName="email"></app-auth-input> <br>
+			<div class="flex justify-between">
+				<label for="">Password</label>
+				<a class="text-SecondaryColor cursor-pointer">forgot Password?</a>
+			</div>
+			<app-auth-input placeholderText="**********" inputType="password" formControlName="password"></app-auth-input>
+			<app-auth-btn title="login"></app-auth-btn>
+		</form>
+		<h4>dont have an account <p [routerLink]="['/register']">register</p>
+		</h4>
+	</div>
+</section>

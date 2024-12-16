@@ -18,9 +18,11 @@ import { AuthBtnComponent } from './components/Auth-Components/auth-btn/auth-btn
 import { AuthInputComponent } from './components/Auth-Components/auth-input/auth-input.component';
 import { AuthSideImageComponent } from './components/Auth-Components/auth-side-image/auth-side-image.component';
 import { SpinnerComponentComponent } from './components/spinner-component/spinner-component.component';
+import { ForgotPasswordComponent } from './screens/forgot-password/forgot-password.component';
+import { UpdatePasswordComponent } from './screens/update-password/update-password.component';
 
 @NgModule({
-  declarations: [AppComponent, LoginComponent, RegisterComponent, AuthBtnComponent, AuthInputComponent, AuthSideImageComponent, SpinnerComponentComponent],
+  declarations: [AppComponent, LoginComponent, RegisterComponent, AuthBtnComponent, AuthInputComponent, AuthSideImageComponent, SpinnerComponentComponent, ForgotPasswordComponent, UpdatePasswordComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

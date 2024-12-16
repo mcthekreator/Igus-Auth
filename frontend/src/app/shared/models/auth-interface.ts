@@ -8,8 +8,12 @@ export interface AuthInterface {
 }
 export interface responseInterface {
     message: string;
-    error:{
+    resetToken: string;
+    error: {
         message: string
     }
-
+}
+export interface updatePasswordInterface {
+    newPassword: string;
+    resetToken: string;
 }

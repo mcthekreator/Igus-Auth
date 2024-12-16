@@ -4,10 +4,11 @@ import { AppDataSource } from "../config/dataSoruce";
 import { generateToken } from "../utils/generateToken";
 import { UserData } from '../entities/User';
 import { Secret } from "jsonwebtoken";
+import * as jwt from 'jsonwebtoken';
 
 export const SECRET_KEY: Secret = process.env.JWT_SECRET;
 
-
+// Register function (unchanged)
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
    try {
       const { email, password, role } = req.body;
@@ -53,6 +54,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
    }
 };
 
+// Login function (unchanged)
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
    try {
       const { email, password } = req.body;
@@ -94,26 +96,97 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
    }
 };
 
-export const getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const requestPasswordReset = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
    try {
-      const repository = AppDataSource.getRepository(UserData);
-      const users = await repository.find();
+      const { email } = req.body;
 
-      if (users.length === 0) {
-         res.status(404).json({ message: "No users found" });
+      if (!email) {
+         res.status(400).json({ message: "Email is required" });
          return;
       }
+
+      const repository = AppDataSource.getRepository(UserData);
+
+      // Check if user exists with the given email
+      const user = await repository.findOne({ where: { email } });
+
+      if (!user) {
+         res.status(404).json({ message: "User with the given email does not exist" });
+         return;
+      }
+
+      // Generate a reset token
+      const resetToken = generateToken(user.id, "1h"); // Example: token expires in 1 hour
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+      await repository.save(user);
+
       res.status(200).json({
-         message: "Users retrieved successfully",
-         users: users.map(user => ({
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            createdAt: user.createdAt,
-         })),
+         message: "Password reset token generated successfully. Use this token to reset your password.",
+         resetToken, // In real-world scenarios, do not send the token in the response; email it instead.
       });
    } catch (err) {
-      console.error("Error during fetching users:", err);
+      console.error("Error requesting password reset:", err);
       next(err);
    }
 };
+
+
+export const resetPassword = async (
+   req: Request,
+   res: Response,
+   next: NextFunction
+ ): Promise<void> => {
+   try {
+     const { token, newPassword } = req.body;
+ 
+     if (!token || !newPassword) {
+       res.status(400).json({ message: "Token and new password are required." });
+       return;
+     }
+ 
+     const repository = AppDataSource.getRepository(UserData);
+ 
+     // Decode and verify the token
+     let payload;
+     try {
+       payload = jwt.verify(token, SECRET_KEY);
+     } catch (err) {
+       res.status(400).json({ message: "Invalid or expired reset token." });
+       return;
+     }
+ 
+     // Find the user by ID from the token
+     const user = await repository.findOne({ where: { id: payload.id } });
+ 
+     if (!user || user.resetPasswordToken !== token) {
+       res.status(400).json({ message: "Invalid reset token or user not found." });
+       return;
+     }
+ 
+     // Check if the reset token is expired
+     if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+       res.status(400).json({ message: "Reset token has expired." });
+       return;
+     }
+ 
+     // Hash the new password
+     const hashedPassword = await bcrypt.hash(newPassword, 10);
+ 
+     // Update the user's password and clear reset token fields
+     user.password = hashedPassword;
+     user.resetPasswordToken = null;
+     user.resetPasswordExpires = null;
+ 
+     await repository.save(user);
+ 
+     res.status(200).json({
+       message: "Password reset successfully. You can now log in with your new password."
+     });
+   } catch (err) {
+     console.error("Error resetting password:", err);
+     next(err);
+   }
+ };
+ 

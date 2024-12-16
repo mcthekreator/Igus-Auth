@@ -17,11 +17,11 @@
 				placeholder="Enter email" formControlName="email"> <br>
 			<div class="flex justify-between">
 				<label for="">Password</label>
-				<a class="text-SecondaryColor cursor-pointer">forgot Password?</a>
+				<a class="text-SecondaryColor cursor-pointer" [routerLink]="['/forgot-password']">forgot Password?</a>
 			</div>
 			<input type="password" class="w-full py-[20px] px-[40px] rounded-md my-5 bg-TertiaryColor"
 				placeholder="********" formControlName="password">
-			<app-auth-btn title="login"></app-auth-btn>
+			<app-auth-btn title="Login"></app-auth-btn>
 		</form>
 		<h4 class="text-center">Don’t have an account?<a class="text-SecondaryColor" [routerLink]="['/register']">Create one!</a>
 		</h4>

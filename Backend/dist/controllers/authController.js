@@ -36,12 +36,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllUsers = exports.login = exports.register = exports.SECRET_KEY = void 0;
+exports.resetPassword = exports.requestPasswordReset = exports.login = exports.register = exports.SECRET_KEY = void 0;
 var bcrypt = require("bcrypt");
 var dataSoruce_1 = require("../config/dataSoruce");
 var generateToken_1 = require("../utils/generateToken");
 var User_1 = require("../entities/User");
+var jwt = require("jsonwebtoken");
 exports.SECRET_KEY = process.env.JWT_SECRET;
+// Register function (unchanged)
 var register = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, role, repository, user, hashedPassword, newUser, err_1;
     return __generator(this, function (_b) {
@@ -95,6 +97,7 @@ var register = function (req, res, next) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.register = register;
+// Login function (unchanged)
 var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, repository, user, isPasswordMatch, token, error_1;
     return __generator(this, function (_b) {
@@ -142,37 +145,99 @@ var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0,
     });
 }); };
 exports.login = login;
-var getAllUsers = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var repository, users, err_2;
+var requestPasswordReset = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var email, repository, user, resetToken, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                repository = dataSoruce_1.AppDataSource.getRepository(User_1.UserData);
-                return [4 /*yield*/, repository.find()];
-            case 1:
-                users = _a.sent();
-                if (users.length === 0) {
-                    res.status(404).json({ message: "No users found" });
+                _a.trys.push([0, 3, , 4]);
+                email = req.body.email;
+                if (!email) {
+                    res.status(400).json({ message: "Email is required" });
                     return [2 /*return*/];
                 }
-                res.status(200).json({
-                    message: "Users retrieved successfully",
-                    users: users.map(function (user) { return ({
-                        id: user.id,
-                        email: user.email,
-                        role: user.role,
-                        createdAt: user.createdAt,
-                    }); }),
-                });
-                return [3 /*break*/, 3];
+                repository = dataSoruce_1.AppDataSource.getRepository(User_1.UserData);
+                return [4 /*yield*/, repository.findOne({ where: { email: email } })];
+            case 1:
+                user = _a.sent();
+                if (!user) {
+                    res.status(404).json({ message: "User with the given email does not exist" });
+                    return [2 /*return*/];
+                }
+                resetToken = (0, generateToken_1.generateToken)(user.id, "1h");
+                user.resetPasswordToken = resetToken;
+                user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour from now
+                return [4 /*yield*/, repository.save(user)];
             case 2:
+                _a.sent();
+                res.status(200).json({
+                    message: "Password reset token generated successfully. Use this token to reset your password.",
+                    resetToken: resetToken,
+                });
+                return [3 /*break*/, 4];
+            case 3:
                 err_2 = _a.sent();
-                console.error("Error during fetching users:", err_2);
+                console.error("Error requesting password reset:", err_2);
                 next(err_2);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
-exports.getAllUsers = getAllUsers;
+exports.requestPasswordReset = requestPasswordReset;
+var resetPassword = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, token, newPassword, repository, payload, user, hashedPassword, err_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, token = _a.token, newPassword = _a.newPassword;
+                if (!token || !newPassword) {
+                    res.status(400).json({ message: "Token and new password are required." });
+                    return [2 /*return*/];
+                }
+                repository = dataSoruce_1.AppDataSource.getRepository(User_1.UserData);
+                payload = void 0;
+                try {
+                    payload = jwt.verify(token, exports.SECRET_KEY);
+                }
+                catch (err) {
+                    res.status(400).json({ message: "Invalid or expired reset token." });
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, repository.findOne({ where: { id: payload.id } })];
+            case 1:
+                user = _b.sent();
+                if (!user || user.resetPasswordToken !== token) {
+                    res.status(400).json({ message: "Invalid reset token or user not found." });
+                    return [2 /*return*/];
+                }
+                // Check if the reset token is expired
+                if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+                    res.status(400).json({ message: "Reset token has expired." });
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, bcrypt.hash(newPassword, 10)];
+            case 2:
+                hashedPassword = _b.sent();
+                // Update the user's password and clear reset token fields
+                user.password = hashedPassword;
+                user.resetPasswordToken = null;
+                user.resetPasswordExpires = null;
+                return [4 /*yield*/, repository.save(user)];
+            case 3:
+                _b.sent();
+                res.status(200).json({
+                    message: "Password reset successfully. You can now log in with your new password."
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                err_3 = _b.sent();
+                console.error("Error resetting password:", err_3);
+                next(err_3);
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.resetPassword = resetPassword;

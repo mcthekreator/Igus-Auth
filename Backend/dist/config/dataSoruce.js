@@ -13,5 +13,6 @@ exports.AppDataSource = new typeorm_1.DataSource({
     entities: [
         User_1.UserData
     ],
-    logging: true
+    logging: true,
+    synchronize: true
 });

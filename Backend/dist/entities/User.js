@@ -15,11 +15,11 @@ var UserData = /** @class */ (function () {
     function UserData() {
     }
     __decorate([
-        (0, typeorm_1.PrimaryGeneratedColumn)(),
-        __metadata("design:type", Number)
+        (0, typeorm_1.PrimaryGeneratedColumn)("uuid"),
+        __metadata("design:type", String)
     ], UserData.prototype, "id", void 0);
     __decorate([
-        (0, typeorm_1.Column)(),
+        (0, typeorm_1.Column)({ unique: true }),
         __metadata("design:type", String)
     ], UserData.prototype, "email", void 0);
     __decorate([
@@ -27,15 +27,27 @@ var UserData = /** @class */ (function () {
         __metadata("design:type", String)
     ], UserData.prototype, "password", void 0);
     __decorate([
-        (0, typeorm_1.Column)(),
+        (0, typeorm_1.Column)({ default: false }),
+        __metadata("design:type", Boolean)
+    ], UserData.prototype, "isVerified", void 0);
+    __decorate([
+        (0, typeorm_1.Column)({ default: "user" }),
         __metadata("design:type", String)
     ], UserData.prototype, "role", void 0);
     __decorate([
-        (0, typeorm_1.CreateDateColumn)({ type: 'timestamp' }),
+        (0, typeorm_1.CreateDateColumn)(),
         __metadata("design:type", Date)
     ], UserData.prototype, "createdAt", void 0);
+    __decorate([
+        (0, typeorm_1.Column)({ nullable: true }),
+        __metadata("design:type", String)
+    ], UserData.prototype, "resetPasswordToken", void 0);
+    __decorate([
+        (0, typeorm_1.Column)({ nullable: true, type: "timestamp" }),
+        __metadata("design:type", Date)
+    ], UserData.prototype, "resetPasswordExpires", void 0);
     UserData = __decorate([
-        (0, typeorm_1.Entity)({ name: 'users' })
+        (0, typeorm_1.Entity)()
     ], UserData);
     return UserData;
 }());

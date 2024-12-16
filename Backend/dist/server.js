@@ -10,10 +10,10 @@ var app = express();
 var cors = require('cors');
 app.use(express.json());
 app.use(cors({
-    origin: "http://localhost:4200", // Replace with your Angular app's URL
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
-    credentials: true, // Include credentials if needed
-    allowedHeaders: ["Content-Type", "Authorization"], // Custom headers
+    origin: "http://localhost:4200",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
 }));
 // Routes
 app.use("/api/auth", authRoutes_1.default);

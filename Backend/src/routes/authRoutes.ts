@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, getAllUsers } from '../controllers/authController';
+import { register, login, requestPasswordReset, resetPassword } from '../controllers/authController';
 import { checkAdmin } from '../middlewares/authMiddleware';
 
 const authRouter = Router();
@@ -7,6 +7,7 @@ const authRouter = Router();
 
 authRouter.post('/register', register);
 authRouter.post('/login', login);
-authRouter.get('/getUsers',checkAdmin, getAllUsers);
+authRouter.post('/reset-password', requestPasswordReset);
+authRouter.post('/update-password', resetPassword);
 
 export default authRouter;

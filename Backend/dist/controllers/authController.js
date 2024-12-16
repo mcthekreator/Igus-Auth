@@ -43,7 +43,6 @@ var generateToken_1 = require("../utils/generateToken");
 var User_1 = require("../entities/User");
 var jwt = require("jsonwebtoken");
 exports.SECRET_KEY = process.env.JWT_SECRET;
-// Register function (unchanged)
 var register = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, role, repository, user, hashedPassword, newUser, err_1;
     return __generator(this, function (_b) {
@@ -97,7 +96,6 @@ var register = function (req, res, next) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.register = register;
-// Login function (unchanged)
 var login = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, repository, user, isPasswordMatch, token, error_1;
     return __generator(this, function (_b) {
@@ -164,14 +162,14 @@ var requestPasswordReset = function (req, res, next) { return __awaiter(void 0, 
                     res.status(404).json({ message: "User with the given email does not exist" });
                     return [2 /*return*/];
                 }
-                resetToken = (0, generateToken_1.generateToken)(user.id, "1h");
+                resetToken = (0, generateToken_1.generateToken)(user.id, user.role);
                 user.resetPasswordToken = resetToken;
-                user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour from now
+                user.resetPasswordExpires = new Date(Date.now() + 3600000);
                 return [4 /*yield*/, repository.save(user)];
             case 2:
                 _a.sent();
                 res.status(200).json({
-                    message: "Password reset token generated successfully. Use this token to reset your password.",
+                    message: "Password reset sucessful",
                     resetToken: resetToken,
                 });
                 return [3 /*break*/, 4];
@@ -186,7 +184,7 @@ var requestPasswordReset = function (req, res, next) { return __awaiter(void 0, 
 }); };
 exports.requestPasswordReset = requestPasswordReset;
 var resetPassword = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, token, newPassword, repository, payload, user, hashedPassword, err_3;
+    var _a, token, newPassword, repository, decodedToken, user, hashedPassword, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -197,38 +195,40 @@ var resetPassword = function (req, res, next) { return __awaiter(void 0, void 0,
                     return [2 /*return*/];
                 }
                 repository = dataSoruce_1.AppDataSource.getRepository(User_1.UserData);
-                payload = void 0;
+                decodedToken = void 0;
                 try {
-                    payload = jwt.verify(token, exports.SECRET_KEY);
+                    decodedToken = jwt.verify(token, process.env.JWT_SECRET);
                 }
                 catch (err) {
                     res.status(400).json({ message: "Invalid or expired reset token." });
                     return [2 /*return*/];
                 }
-                return [4 /*yield*/, repository.findOne({ where: { id: payload.id } })];
+                return [4 /*yield*/, repository.findOne({ where: { id: decodedToken.id } })];
             case 1:
                 user = _b.sent();
-                if (!user || user.resetPasswordToken !== token) {
-                    res.status(400).json({ message: "Invalid reset token or user not found." });
+                if (!user) {
+                    res.status(404).json({ message: "User not found." });
                     return [2 /*return*/];
                 }
-                // Check if the reset token is expired
-                if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+                if (user.resetPasswordExpires && new Date(user.resetPasswordExpires) < new Date()) {
                     res.status(400).json({ message: "Reset token has expired." });
                     return [2 /*return*/];
                 }
                 return [4 /*yield*/, bcrypt.hash(newPassword, 10)];
             case 2:
                 hashedPassword = _b.sent();
-                // Update the user's password and clear reset token fields
+                console.log("New hashed password:", hashedPassword); // Check this in the logs
+                // Update user properties
                 user.password = hashedPassword;
                 user.resetPasswordToken = null;
                 user.resetPasswordExpires = null;
+                // Persist the updated user
                 return [4 /*yield*/, repository.save(user)];
             case 3:
+                // Persist the updated user
                 _b.sent();
                 res.status(200).json({
-                    message: "Password reset successfully. You can now log in with your new password."
+                    message: "Password reset successfully.",
                 });
                 return [3 /*break*/, 5];
             case 4:

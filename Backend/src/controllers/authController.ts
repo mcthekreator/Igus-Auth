@@ -8,7 +8,7 @@ import * as jwt from 'jsonwebtoken';
 
 export const SECRET_KEY: Secret = process.env.JWT_SECRET;
 
-// Register function (unchanged)
+
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
    try {
       const { email, password, role } = req.body;
@@ -54,7 +54,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
    }
 };
 
-// Login function (unchanged)
+
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
    try {
       const { email, password } = req.body;
@@ -107,24 +107,19 @@ export const requestPasswordReset = async (req: Request, res: Response, next: Ne
 
       const repository = AppDataSource.getRepository(UserData);
 
-      // Check if user exists with the given email
       const user = await repository.findOne({ where: { email } });
-
       if (!user) {
          res.status(404).json({ message: "User with the given email does not exist" });
          return;
       }
-
-      // Generate a reset token
-      const resetToken = generateToken(user.id, "1h"); // Example: token expires in 1 hour
+  
+      const resetToken = generateToken(user.id, user.role); 
       user.resetPasswordToken = resetToken;
-      user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour from now
-
+      user.resetPasswordExpires = new Date(Date.now() + 3600000); 
       await repository.save(user);
-
       res.status(200).json({
-         message: "Password reset token generated successfully. Use this token to reset your password.",
-         resetToken, // In real-world scenarios, do not send the token in the response; email it instead.
+         message: "Password reset sucessful",
+         resetToken,
       });
    } catch (err) {
       console.error("Error requesting password reset:", err);
@@ -148,41 +143,40 @@ export const resetPassword = async (
  
      const repository = AppDataSource.getRepository(UserData);
  
-     // Decode and verify the token
-     let payload;
+     let decodedToken;
      try {
-       payload = jwt.verify(token, SECRET_KEY);
+       decodedToken = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
      } catch (err) {
        res.status(400).json({ message: "Invalid or expired reset token." });
        return;
      }
  
-     // Find the user by ID from the token
-     const user = await repository.findOne({ where: { id: payload.id } });
+     const user = await repository.findOne({ where: { id: decodedToken.id } });
  
-     if (!user || user.resetPasswordToken !== token) {
-       res.status(400).json({ message: "Invalid reset token or user not found." });
+     if (!user) {
+       res.status(404).json({ message: "User not found." });
        return;
      }
  
-     // Check if the reset token is expired
-     if (user.resetPasswordExpires && user.resetPasswordExpires < new Date()) {
+     if (user.resetPasswordExpires && new Date(user.resetPasswordExpires) < new Date()) {
        res.status(400).json({ message: "Reset token has expired." });
        return;
      }
  
-     // Hash the new password
+     // Log and hash the new password
      const hashedPassword = await bcrypt.hash(newPassword, 10);
+     console.log("New hashed password:", hashedPassword); // Check this in the logs
  
-     // Update the user's password and clear reset token fields
+     // Update user properties
      user.password = hashedPassword;
      user.resetPasswordToken = null;
      user.resetPasswordExpires = null;
  
+     // Persist the updated user
      await repository.save(user);
  
      res.status(200).json({
-       message: "Password reset successfully. You can now log in with your new password."
+       message: "Password reset successfully.",
      });
    } catch (err) {
      console.error("Error resetting password:", err);

@@ -8,6 +8,6 @@ const authRouter = Router();
 authRouter.post('/register', register);
 authRouter.post('/login', login);
 authRouter.post('/reset-password', requestPasswordReset);
-authRouter.post('/update-password', resetPassword);
+authRouter.patch('/update-password', resetPassword);
 
 export default authRouter;

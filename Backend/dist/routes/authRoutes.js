@@ -6,5 +6,5 @@ var authRouter = (0, express_1.Router)();
 authRouter.post('/register', authController_1.register);
 authRouter.post('/login', authController_1.login);
 authRouter.post('/reset-password', authController_1.requestPasswordReset);
-authRouter.post('/update-password', authController_1.resetPassword);
+authRouter.patch('/update-password', authController_1.resetPassword);
 exports.default = authRouter;
